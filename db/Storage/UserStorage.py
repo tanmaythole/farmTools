@@ -23,6 +23,34 @@ class UserStorage:
             raise falcon.HTTPBadRequest(title=str(e))
 
     @staticmethod
-    def get_user(email):
+    def get_user_by_email(email):
         user = Users.select(Users.q.email==email)
         return user
+    
+    def get_user(self, id):
+        """
+        Get User
+        """
+        user = Users.get(id=id)
+        return user
+
+    def update_user(self, user_id, data={}):
+        """
+        Update User
+        """
+        user = self.get_user(user_id)
+        user_dict = user.get_dict()
+        pass
+
+    def change_password(self, user_id, password):
+        """
+        Change Password of User
+        """
+        user = self.get_user(user_id)
+        try:
+            user.set(
+                password=hash_password(password).decode('utf-8')
+            )
+            return user
+        except Exception as e:
+            raise falcon.HTTPBadRequest(str(e))

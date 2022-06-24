@@ -19,7 +19,7 @@ class Auth:
                 "error": "Invalid Credentials!"
             }
         else:
-            user = UserStorage.get_user(data.get('email'))
+            user = UserStorage.get_user_by_email(data.get('email'))
             if user.count()>0 and check_password(data.get('password'), user[0].password):
                 user = user[0].get_dict()
                 user['token'] = generate_jwt_token(user)
@@ -76,4 +76,30 @@ class Auth:
             resp.status = falcon.HTTP_404
             resp.media = {
                 "error": "Requested URL not found!"
+            }
+
+    def on_put_change_password(self, req, resp):
+        """
+        Change Password of User
+        """
+        curr_user = req.context.get('curr_user')
+        req_data = json.loads(req.stream.read())
+        print(curr_user['id'])
+        user = UserStorage().get_user(id=curr_user['id'])
+        
+        if not req_data.get('new_password') or not req_data.get('curr_password'):
+            resp.status = falcon.HTTP_400
+            resp.media = {
+                "error": "All fields are required!"
+            }
+        elif check_password(req_data.get('curr_password'), user.password):
+            UserStorage().change_password(user.id, req_data.get('new_password'))
+            resp.status = falcon.HTTP_200
+            resp.media = {
+                "success": "Password Changed Successfully!"
+            }
+        else:
+            resp.status = falcon.HTTP_400
+            resp.media = {
+                "success": "Invalid Password!"
             }
