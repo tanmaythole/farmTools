@@ -1,4 +1,5 @@
 import json
+import re
 import falcon
 from db.Storage.UserStorage import UserStorage
 from utils.auth import check_password, generate_jwt_token
@@ -36,7 +37,7 @@ class Auth:
         """
         Login a User
         """
-        data = json.loads(req.stream.read())
+        data = json.loads(req.stream.read(req.content_length or 0))
 
         if not data.get('email') or not data.get('password'):
             resp.status = falcon.HTTP_400
@@ -51,7 +52,7 @@ class Auth:
         """
         Register a User
         """
-        data = json.loads(req.stream.read())
+        data = json.loads(req.stream.read(req.content_length))
         
         if not data.get('email') or not data.get('password') or not data.get('mobile'):
             resp.status = falcon.HTTP_400
@@ -59,9 +60,13 @@ class Auth:
                 "error": "Email, Mobile and password are required!"
             }
         else:
-            user = UserStorage().create_user(data)
-            resp.status = falcon.HTTP_201
-            resp.media = user
+            try:
+                user = UserStorage().create_user(data)
+                resp.status = falcon.HTTP_201
+                resp.media = user
+            except Exception as e:
+                resp.status = e.status
+                resp.media = e.title
 
 
     def on_post(self, req, resp):

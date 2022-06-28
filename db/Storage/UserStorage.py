@@ -13,7 +13,10 @@ class UserStorage:
         is_exist = list(Users.select(Users.q.email==data.get('email')))
 
         if len(is_exist)>0:
-            raise falcon.HTTPBadRequest(title="User alredy exist with this email.")
+            raise falcon.HTTPBadRequest(title="User already exist with this email.")
+        
+        if len(str(data.get('mobile'))) != 10:
+            raise falcon.HTTPBadRequest("Mobile number not valid!")
 
         try:
             data['password'] = hash_password(data.get('password')).decode('utf-8')
